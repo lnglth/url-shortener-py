@@ -39,7 +39,7 @@ def shorten_url(url: str, expired_date: int = 30):
     # TODO: Can use some cache before access to database to gain more speed
     # Check if the URL already exists in database
     cur.execute(
-        "SELECT short_url, created_at, click_count FROM url WHERE original_url = %s",
+        "SELECT short_url, created_at, expired_at, click_count FROM url WHERE original_url = %s",
         (url,),
     )
     query = cur.fetchone()
@@ -47,7 +47,8 @@ def shorten_url(url: str, expired_date: int = 30):
         return {
             "short_url": f"{BASE_URL}{query[0]}",
             "created_at": query[1],
-            "click_count": query[2],
+            "expired_at": query[2],
+            "click_count": query[3],
         }
 
     # Otherwise, generate a new short URL
@@ -82,8 +83,10 @@ def redirect_url(short_url: str):
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT original_url, click_count FROM url WHERE short_url = %s", (short_url,)
+        "SELECT original_url, click_count FROM url WHERE short_url = %s AND expired_at > %s",
+        (short_url, datetime.datetime.now().date()),
     )
+
     query = cur.fetchone()
     if not query:
         raise HTTPException(status_code=404, detail="URL not found")
