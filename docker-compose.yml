@@ -19,6 +19,8 @@ services:
 
   api:
     build: .
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@database:5432/url-shortener-db
     ports:
       - 8000:8000
     expose:

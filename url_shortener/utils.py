@@ -3,6 +3,9 @@ import secrets
 import string
 
 import psycopg2
+from fastapi import HTTPException
+
+DEFAULT_DATABASE_URL = "postgresql://postgres:password@database:5432/url-shortener-db"
 
 
 def generate_short_url(length: int = 6) -> str:
@@ -13,8 +16,8 @@ def generate_short_url(length: int = 6) -> str:
 
 
 def connect_database():
-    # try:
-    conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
-    # except Exception:
-    # raise HTTPException(status_code=500, detail="Database connection failed")
+    try:
+        conn = psycopg2.connect(os.environ.get("DATABASE_URL") or DEFAULT_DATABASE_URL)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Database connection failed")
     return conn
