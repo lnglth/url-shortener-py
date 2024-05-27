@@ -1,0 +1,32 @@
+name: url-shortener
+
+services:
+  database:
+    image: postgres:16
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
+    volumes:
+      - database:/tmp/postgresql/data/
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=url-shortener-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    networks:
+      - default
+
+  api:
+    build: .
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+    depends_on:
+      - database
+    networks:
+      - default
+
+volumes:
+  database:
