@@ -1,3 +1,5 @@
+import logging
+
 from fastapi.testclient import TestClient
 
 from url_shortener.api import app
@@ -66,17 +68,18 @@ def test_click_count():
         "url": "https://www.google.com/search?q=url+shortener&oq=url+shortener",
     }
 
-    client.post("/shorten", params=params)
-
     response = client.post("/shorten", params=params)
     short_url = response.json()["short_url"]
+    logging.info(short_url)
 
     click_count_initial = response.json()["click_count"] - 1
+    # logging.info(click_count_initial)
 
     # Simulate a few clicks on the short URL
     for _ in range(5):
         response = client.get(f"/{short_url.split('/')[-1]}", follow_redirects=False)
         click_count_final = int(response.headers["click_count"])
+        # logging.info(click_count_final)
 
     # Check the click count
     assert click_count_final == click_count_initial + 5
