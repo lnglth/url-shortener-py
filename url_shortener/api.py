@@ -61,11 +61,12 @@ def shorten_url(url: str, expired_date: int = 30):
 
     # Insert the new URL into the database
     cur.execute(
-        "INSERT INTO url (original_url, short_url, expired_at) VALUES (%s, %s, %s)",
+        "INSERT INTO url (original_url, short_url, expired_at, created_at) VALUES (%s, %s, %s, %s)",
         (
             url,
             short_url,
-            datetime.datetime.now() + datetime.timedelta(days=expired_date),
+            datetime.now() + timedelta(days=expired_date),
+            datetime.now(),
         ),
     )
 
@@ -84,7 +85,7 @@ def redirect_url(short_url: str):
 
     cur.execute(
         "SELECT original_url, click_count FROM url WHERE short_url = %s AND expired_at > %s",
-        (short_url, datetime.datetime.now().date()),
+        (short_url, datetime.now().date()),
     )
 
     query = cur.fetchone()
@@ -93,11 +94,11 @@ def redirect_url(short_url: str):
     else:
         # Increment click count
         cur.execute(
-            "UPDATE url SET click_count = click_count + 1 WHERE short_url = %s",
-            (short_url,),
+            "UPDATE url (click_count) VALUES (%s) WHERE short_url = %s",
+            (query[1] + 1, short_url),
         )
         original_url = query[0]
-        click_count = query[1]
+        click_count = query[1] + 1
 
     headers = {
         "click_count": str(click_count),
